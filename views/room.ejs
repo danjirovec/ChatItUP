@@ -1,0 +1,77 @@
+<a href="/rooms"><h2>Leave Room</h2></a>
+<h1><%= room.name %></h1>
+
+<pre id="messages" style="height: 400px; overflow: scroll"></pre>
+<input
+        type="text"
+        id="messageBox"
+        placeholder="Type your message here"
+        style="display: block; width: 100%; margin-bottom: 10px; padding: 10px"
+/>
+<button id="send" title="Send Message!" style="width: 100%; height: 30px">
+    Send Message
+</button>
+
+<script>
+    (function () {
+        const sendBtn = document.querySelector('#send');
+        const messages = document.querySelector('#messages');
+        const messageBox = document.querySelector('#messageBox');
+
+        let ws;
+
+        function showMessage(message) {
+            // Přidá message do messages
+            messages.textContent += `\n\n${message}`;
+            // Scroluje nahoru
+            messages.scrollTop = messages.scrollHeight;
+            // Resetuje input hodnotu
+            messageBox.value = '';
+        }
+
+        function init() {
+            // Pokud existuje spojení, zavři ho
+            if (ws) {
+                ws.onerror = ws.onopen = ws.onclose = null;
+                ws.close();
+            }
+
+            ws = new WebSocket('ws://localhost:3000');
+            ws.onopen = () => {
+                console.log('Connection opened');
+                ws.send(JSON.stringify({
+                    action: "room",
+                    message: window.location.href.split("/")[5],
+                }))
+            };
+            ws.onmessage = ({data}) => {
+                const object = JSON.parse(data)
+                switch (object.type) {
+                    case "message":
+                        showMessage(object.message);
+                        break;
+                }
+            }
+            ws.onclose = function () {
+                ws = null;
+            };
+        }
+
+        // Po kliknutí tlačítka
+        sendBtn.onclick = function () {
+            // Pokud není connection, ukaž upozornění
+            if (!ws) {
+                showMessage('No connection');
+                return;
+            }
+            // Pošle zprávu s uživatelským jménem a zobrazí ji
+            ws.send(JSON.stringify({
+                action: 'message',
+                message: `<%= user.name %>: ${messageBox.value}`
+            }));
+            showMessage(`<%= user.name %>: ${messageBox.value}`);
+        };
+
+        init();
+    })();
+</script>

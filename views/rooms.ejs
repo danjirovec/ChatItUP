@@ -1,0 +1,56 @@
+<form action="/logout" method="post">
+  <button type="submit">Logout</button>
+</form>
+
+<h1>Welcome <%= user.name %></h1>
+
+<h3>Search For Rooms</h3>
+
+<a href="/rooms">All Rooms</a>
+
+<br><br>
+
+<form action="/rooms" method="get">
+  <input type="text" name="search" placeholder="Search"/>
+  <button type="submit">Search</button>
+</form>
+
+<h2>Rooms</h2>
+<!-- Pokud existují roomky -->
+<% if (rooms.length > 0) { %> <% rooms.forEach(room => { %>
+
+<!-- Vrátí div -->
+<div style="white-space: nowrap">
+  <!-- Pokud současný uživatel je tvůrce roomky -->
+  <% if (room.creatorId === user.id) { %>
+  <!-- Ukazuje status owner -->
+  <p style="display: inline-block"><%= room.name %> <b>(owner)</b></p>
+  <!-- Zobrazuje delete -->
+  <a href="/rooms/remove/<%= room.id %>" style="display: inline-block"
+    >Delete</a
+  >
+  <% } else { %>
+  <p><%= room.name %></p>
+  <% } %>
+
+  <!-- Pro tvůrce roomky i ostatní -->
+  <form
+    action="/rooms/connect/<%= room.id %>"
+    method="post"
+  >
+    <input type="password" name="password" placeholder="Password" required />
+    <button style="display: inline-block" type="submit">Join</button>
+  </form>
+</div>
+<!-- Pokud neexistujou žádný roomky -->
+<% }) %> <% } else { %>
+<!-- Zobrazení upozornění -->
+<p>There are no rooms to display...</p>
+<% } %>
+
+<h3>Create Room</h3>
+<form action="/rooms" method="post">
+  <input type="text" name="name" placeholder="Name" required />
+  <input type="password" name="password" placeholder="Password" required />
+  <button type="submit">Create</button>
+</form>
